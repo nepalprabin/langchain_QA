@@ -4,3 +4,4 @@ python-dotenv==1.0.0
 pinecone-client
 streamlit
 unstructured[local-inference]
+beautifulsoup4
