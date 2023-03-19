@@ -4,10 +4,8 @@ This code is a Python script that implements a Streamlit-based user interface fo
 
 ### To run this code:
 
-```
-1. git clone
+1. git clone <code>https://github.com/nepalprabin/langchain_QA.git</code>
 2. pip install -r requirements.txt
 3. Setup [pinecone](https://www.pinecone.io/) vector database
-4. Setup keys for openAPI and pinecone
+4. Setup keys for OpenAI and pinecone
 5. Run the app using <code>streamlit run main.py</code>
-```
