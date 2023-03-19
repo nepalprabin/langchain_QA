@@ -66,6 +66,7 @@ try:
 
     docs = docs_(docsearch=docsearch, query=user_input)
     output = chain.run(input_documents=docs, question=user_input)
+    st.write(output)
 
 except ValueError:
     pass
