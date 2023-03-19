@@ -1,17 +1,14 @@
 import os
 from langchain.llms import OpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import Pinecone
-from langchain.document_loaders import UnstructuredPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.question_answering import load_qa_chain
 
 import streamlit as st
 
-import pinecone
-
 # pydot env
 from dotenv import load_dotenv
+
+# custom import
+from utils import load_data, convert_into_chunks, embeddings_, vector_database_setup, store_to_pinecone, docs_, create_index
 
 # loading environment variables
 load_dotenv()
@@ -30,34 +27,41 @@ st.header("LangChain Question Answering")
 
 try:
     # uploaded_file = st.file_uploader('Upload a file')
-    with st.spinner('Wait for it...'):
-        with st.form("upload-form", clear_on_submit=True):
-            uploaded_file = st.file_uploader("Choose a file", accept_multiple_files=False,
-                                             type=['pdf'],
-                                             help="Upload a file")
-            submitted = st.form_submit_button("Upload")
+    with st.form("upload-form", clear_on_submit=True):
+        uploaded_file = st.file_uploader("Choose a file", accept_multiple_files=False,
+                                         type=['pdf'],
+                                         help="Upload a file")
+        submitted = st.form_submit_button("Upload")
 
     # with st.spinner('Wait for it...'):
     #     time.sleep(5)
 
-    loader = UnstructuredPDFLoader(uploaded_file)
-    data = loader.load()
+    data = load_data(uploaded_file)
+
+    # loader = UnstructuredPDFLoader(uploaded_file)
+    # data = loader.load()
 
     # Chunking data upto smaller components
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000, chunk_overlap=0)
-    texts = text_splitter.split_documents(data)
+    texts = convert_into_chunks(chunk_size=1000, data=data)
+    # text_splitter = RecursiveCharacterTextSplitter(
+    #     chunk_size=1000, chunk_overlap=0)
+    # texts = text_splitter.split_documents(data)
 
-    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+    embeddings = embeddings_(openai_api_key=OPENAI_API_KEY)
+
+    # embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 
     # initializing pinecone
-    pinecone.init(
-        api_key=PINECONE_API_KEY,
-        environment=PINECONE_API_ENV
-    )
+    vector_database_setup(PINECONE_API_KEY, PINECONE_API_ENV)
 
-    docsearch = Pinecone.from_texts(
-        [t.page_content for t in texts], embeddings, index_name=index_name)
+    # pinecone.init(
+    #     api_key=PINECONE_API_KEY,
+    #     environment=PINECONE_API_ENV
+    # )
+
+    docsearch = store_to_pinecone(texts, embeddings, index_name)
+    # docsearch = Pinecone.from_texts(
+    #     [t.page_content for t in texts], embeddings, index_name=index_name)
 
     # query = "What is the linkedin profile link?"
     # docs = docsearch.similarity_search(query, include_metadata=True)
@@ -82,9 +86,9 @@ try:
 
     # if user_input:
     # docs = docs_(docsearch, user_input)
-    docs = docsearch.similarity_search(user_input, include_metadata=True)
+    docs = docs_(docsearch=docsearch, query=user_input)
+    # docs = docsearch.similarity_search(user_input, include_metadata=True)
     output = chain.run(input_documents=docs, question=user_input)
-    st.write(output)
 
     #     st.session_state.past.append(user_input)
     #     st.session_state.generated.append(output)
