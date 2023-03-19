@@ -8,8 +8,20 @@ from langchain.chains.question_answering import load_qa_chain
 
 import streamlit as st
 
-# Creating embeddings for semantic search
 import pinecone
+
+# pydot env
+from dotenv import load_dotenv
+
+# loading environment variables
+load_dotenv()
+
+# accessing environment variables
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
+PINECONE_API_ENV = os.getenv('PINECONE_API_ENV')
+index_name = os.getenv('index_name')
+
 
 # loading the data
 # From here down is all the StreamLit UI.
@@ -36,12 +48,12 @@ try:
         chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(data)
 
-    embeddings = OpenAIEmbeddings(openai_api_key=os.environ['OPENAI_API_KEY'])
+    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 
     # initializing pinecone
     pinecone.init(
-        api_key=os.environ['PINECONE_API_KEY'],
-        environment=os.environ['PINECONE_API_ENV']
+        api_key=PINECONE_API_KEY,
+        environment=PINECONE_API_ENV
     )
 
     docsearch = Pinecone.from_texts(
