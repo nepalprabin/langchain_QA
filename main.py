@@ -33,41 +33,22 @@ try:
                                          help="Upload a file")
         submitted = st.form_submit_button("Upload")
 
-    # with st.spinner('Wait for it...'):
-    #     time.sleep(5)
-
     data = load_data(uploaded_file)
-
-    # loader = UnstructuredPDFLoader(uploaded_file)
-    # data = loader.load()
 
     # Chunking data upto smaller components
     texts = convert_into_chunks(chunk_size=1000, data=data)
-    # text_splitter = RecursiveCharacterTextSplitter(
-    #     chunk_size=1000, chunk_overlap=0)
-    # texts = text_splitter.split_documents(data)
 
+    # embeddings
     embeddings = embeddings_(openai_api_key=OPENAI_API_KEY)
 
-    # embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
-
-    # initializing pinecone
+    # initializing pinecone vectorstore
     vector_database_setup(PINECONE_API_KEY, PINECONE_API_ENV)
 
-    # pinecone.init(
-    #     api_key=PINECONE_API_KEY,
-    #     environment=PINECONE_API_ENV
-    # )
-
+    # storing embeddings to pinecone
     docsearch = store_to_pinecone(texts, embeddings, index_name)
-    # docsearch = Pinecone.from_texts(
-    #     [t.page_content for t in texts], embeddings, index_name=index_name)
 
-    # query = "What is the linkedin profile link?"
-    # docs = docsearch.similarity_search(query, include_metadata=True)
-
+    # loading question answering chain
     def load_chain():
-        """Logic for loading the chain you want to use should go here."""
         llm = OpenAI(temperature=0)
         chain = load_qa_chain(llm, chain_type='stuff')
         return chain
@@ -82,22 +63,9 @@ try:
         return input_text
 
     user_input = get_text()
-    print('-----', user_input)
 
-    # if user_input:
-    # docs = docs_(docsearch, user_input)
     docs = docs_(docsearch=docsearch, query=user_input)
-    # docs = docsearch.similarity_search(user_input, include_metadata=True)
     output = chain.run(input_documents=docs, question=user_input)
-
-    #     st.session_state.past.append(user_input)
-    #     st.session_state.generated.append(output)
-
-    # if st.session_state["generated"]:
-
-    #     for i in range(len(st.session_state["generated"]) - 1, -1, -1):
-    #         message(st.session_state["generated"][i], key=str(i))
-    #         message(st.session_state["past"][i], is_user=True, key=str(i) + "_user")
 
 except ValueError:
     pass
