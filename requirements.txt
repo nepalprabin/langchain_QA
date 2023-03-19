@@ -3,4 +3,4 @@ langchain
 python-dotenv
 pinecode
 streamlit
-"unstructured[local-inference]"
+unstructured[local-inference]
